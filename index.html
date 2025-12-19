@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MT5 Threshold Analytics Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            padding: 30px 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            color: #ffffff;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 40px 30px;
+            background: #ffffff;
+        }
+        
+        .threshold-section {
+            margin-bottom: 50px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .threshold-title {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: #ffffff;
+            padding: 20px 30px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .date-range-heading {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1a237e;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            border: 2px solid #1a237e;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            font-size: 13px;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: #ffffff;
+        }
+        
+        th {
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        th:first-child {
+            text-align: left;
+            padding-left: 20px;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #e8e8e8;
+            transition: background-color 0.2s ease;
+        }
+        
+        tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        
+        tbody tr:nth-child(even):hover {
+            background-color: #f0f0f0;
+        }
+        
+        td {
+            padding: 18px 10px;
+            text-align: center;
+            vertical-align: middle;
+            white-space: pre-line;
+            border: 1px solid #e8e8e8;
+            color: #333;
+        }
+        
+        td:first-child {
+            text-align: left;
+            padding-left: 20px;
+            font-weight: 600;
+            color: #1a237e;
+            background-color: #f8f9fa;
+            border-right: 2px solid #1a237e;
+        }
+        
+        .success {
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 20px;
+            display: block;
+            margin-bottom: 6px;
+        }
+        
+        .success-value {
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+        }
+        
+        .failure {
+            color: #f44336;
+            font-weight: bold;
+            font-size: 20px;
+            text-align: center;
+            display: block;
+            margin-bottom: 6px;
+        }
+        
+        .failure-value {
+            color: #ff9800;
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+        }
+        
+        .no-data {
+            color: #999;
+            font-style: italic;
+        }
+        
+        .total-cell {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
+            color: #ffffff !important;
+            font-weight: bold;
+            text-align: center;
+            padding: 18px 10px;
+            vertical-align: middle;
+            border: 2px solid #4caf50 !important;
+        }
+        
+        .total-label {
+            margin: 4px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .total-pnl-positive {
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .total-pnl-negative {
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .total-wins {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .total-drawdown {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        
+        tbody tr:last-child {
+            border-top: 3px solid #4caf50;
+        }
+        
+        tbody tr:last-child td {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
+            color: #ffffff !important;
+            font-weight: bold;
+        }
+        
+        tbody tr:last-child td:first-child {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%) !important;
+            color: #ffffff !important;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            padding: 20px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            border-top: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        /* Scrollbar styling */
+        .table-wrapper::-webkit-scrollbar {
+            height: 10px;
+        }
+        
+        .table-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 5px;
+        }
+        
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 MT5 Threshold Analytics Report</h1>
+            <p>Generated on December 19, 2025 at 04:28 PM</p>
+        </div>
+        <div class="content">
+
+            <div class="threshold-section">
+                <div class="threshold-title">
+                    500 Threshold
+                </div>
+
+                <div class="date-range-heading">
+                    Dec 01 - Dec 18
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>C2</th>
+                                <th>D1</th>
+                                <th>D2</th>
+                                <th>D3</th>
+                                <th>D4</th>
+                                <th>D5</th>
+                                <th>F1</th>
+                                <th>F2</th>
+                                <th>G2</th>
+                                <th>H</th>
+                                <th>I</th>
+                                <th>K1</th>
+                                <th>K2</th>
+                                <th>P1</th>
+                                <th>P2</th>
+                                <th>P3</th>
+                                <th>P4</th>
+                                <th>PX</th>
+                                <th>Q</th>
+                                <th>R</th>
+                                <th>S</th>
+                                <th>T</th>
+                                <th>TL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mon, Dec 01</td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-5250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 02</td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4500.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 03</td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 04</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Fri, Dec 05</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mon, Dec 08</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-12000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-10000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-12000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-16250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-13000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-8000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 09</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 10</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 11</td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Fri, Dec 12</td>
+                                <td><span class="success">✅</span><span class="success-value">(-14500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-5500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-8750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-10000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-11500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-19000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-14000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-8750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mon, Dec 15</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 16</td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-9750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4000.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 17</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 18</td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-6500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-7500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-6750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="total-cell"></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3000</div><div class="total-label total-drawdown">Drawdown: -25500.0</div><div class="total-label total-pnl-negative">P&L: -22500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -3500.0</div><div class="total-label total-pnl-negative">P&L: -2500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 500</div><div class="total-label total-drawdown">Drawdown: -7000.0</div><div class="total-label total-pnl-negative">P&L: -6500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -2000.0</div><div class="total-label total-pnl-negative">P&L: -1000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -6250.0</div><div class="total-label total-pnl-negative">P&L: -6250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1500</div><div class="total-label total-drawdown">Drawdown: -8500.0</div><div class="total-label total-pnl-negative">P&L: -7000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6500</div><div class="total-label total-drawdown">Drawdown: -39250.0</div><div class="total-label total-pnl-negative">P&L: -32750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2500</div><div class="total-label total-drawdown">Drawdown: -7500.0</div><div class="total-label total-pnl-negative">P&L: -5000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1500</div><div class="total-label total-drawdown">Drawdown: -17250.0</div><div class="total-label total-pnl-negative">P&L: -15750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4500</div><div class="total-label total-drawdown">Drawdown: -22750.0</div><div class="total-label total-pnl-negative">P&L: -18250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2500</div><div class="total-label total-drawdown">Drawdown: -34500.0</div><div class="total-label total-pnl-negative">P&L: -32000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -4750.0</div><div class="total-label total-pnl-negative">P&L: -3750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -4250.0</div><div class="total-label total-pnl-negative">P&L: -3250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3500</div><div class="total-label total-drawdown">Drawdown: -18750.0</div><div class="total-label total-pnl-negative">P&L: -15250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5000</div><div class="total-label total-drawdown">Drawdown: -34750.0</div><div class="total-label total-pnl-negative">P&L: -29750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5500</div><div class="total-label total-drawdown">Drawdown: -42750.0</div><div class="total-label total-pnl-negative">P&L: -37250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2500</div><div class="total-label total-drawdown">Drawdown: -31000.0</div><div class="total-label total-pnl-negative">P&L: -28500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3000</div><div class="total-label total-drawdown">Drawdown: -35250.0</div><div class="total-label total-pnl-negative">P&L: -32250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4000</div><div class="total-label total-drawdown">Drawdown: -48250.0</div><div class="total-label total-pnl-negative">P&L: -44250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2500</div><div class="total-label total-drawdown">Drawdown: -35750.0</div><div class="total-label total-pnl-negative">P&L: -33250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3000</div><div class="total-label total-drawdown">Drawdown: -28000.0</div><div class="total-label total-pnl-negative">P&L: -25000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5500</div><div class="total-label total-drawdown">Drawdown: -37000.0</div><div class="total-label total-pnl-negative">P&L: -31500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -26250.0</div><div class="total-label total-pnl-negative">P&L: -24250.0</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="threshold-section">
+                <div class="threshold-title">
+                    1000 Threshold
+                </div>
+
+                <div class="date-range-heading">
+                    Dec 01 - Dec 18
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>C2</th>
+                                <th>D1</th>
+                                <th>D2</th>
+                                <th>D3</th>
+                                <th>D4</th>
+                                <th>D5</th>
+                                <th>F1</th>
+                                <th>F2</th>
+                                <th>G2</th>
+                                <th>H</th>
+                                <th>I</th>
+                                <th>K1</th>
+                                <th>K2</th>
+                                <th>P1</th>
+                                <th>P2</th>
+                                <th>P3</th>
+                                <th>P4</th>
+                                <th>PX</th>
+                                <th>Q</th>
+                                <th>R</th>
+                                <th>S</th>
+                                <th>T</th>
+                                <th>TL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mon, Dec 01</td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-5250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 02</td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4500.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 03</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 04</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Fri, Dec 05</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mon, Dec 08</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-12000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-10000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-12000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-16250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-13000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-8000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 09</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 10</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 11</td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Fri, Dec 12</td>
+                                <td><span class="success">✅</span><span class="success-value">(-14500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-5500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-8750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-10000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-11500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-19000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-14000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-8750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mon, Dec 15</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 16</td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-9750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4000.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 17</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 18</td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-6500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-7500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-6750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="total-cell"></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5000</div><div class="total-label total-drawdown">Drawdown: -25500.0</div><div class="total-label total-pnl-negative">P&L: -20500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -3500.0</div><div class="total-label total-pnl-negative">P&L: -2500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -7000.0</div><div class="total-label total-pnl-negative">P&L: -6000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -2000.0</div><div class="total-label total-pnl-negative">P&L: -1000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -6250.0</div><div class="total-label total-pnl-negative">P&L: -6250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -8500.0</div><div class="total-label total-pnl-negative">P&L: -7500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 10000</div><div class="total-label total-drawdown">Drawdown: -39250.0</div><div class="total-label total-pnl-negative">P&L: -29250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5000</div><div class="total-label total-drawdown">Drawdown: -7500.0</div><div class="total-label total-pnl-negative">P&L: -2500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -17250.0</div><div class="total-label total-pnl-negative">P&L: -15250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5000</div><div class="total-label total-drawdown">Drawdown: -22750.0</div><div class="total-label total-pnl-negative">P&L: -17750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4000</div><div class="total-label total-drawdown">Drawdown: -34500.0</div><div class="total-label total-pnl-negative">P&L: -30500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -4750.0</div><div class="total-label total-pnl-negative">P&L: -3750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1000</div><div class="total-label total-drawdown">Drawdown: -4250.0</div><div class="total-label total-pnl-negative">P&L: -3250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -18750.0</div><div class="total-label total-pnl-negative">P&L: -12750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -34750.0</div><div class="total-label total-pnl-negative">P&L: -28750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5000</div><div class="total-label total-drawdown">Drawdown: -42750.0</div><div class="total-label total-pnl-negative">P&L: -37750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5000</div><div class="total-label total-drawdown">Drawdown: -31000.0</div><div class="total-label total-pnl-negative">P&L: -26000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5000</div><div class="total-label total-drawdown">Drawdown: -35250.0</div><div class="total-label total-pnl-negative">P&L: -30250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -48250.0</div><div class="total-label total-pnl-negative">P&L: -42250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 5000</div><div class="total-label total-drawdown">Drawdown: -35750.0</div><div class="total-label total-pnl-negative">P&L: -30750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4000</div><div class="total-label total-drawdown">Drawdown: -28000.0</div><div class="total-label total-pnl-negative">P&L: -24000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 9000</div><div class="total-label total-drawdown">Drawdown: -37000.0</div><div class="total-label total-pnl-negative">P&L: -28000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4000</div><div class="total-label total-drawdown">Drawdown: -26250.0</div><div class="total-label total-pnl-negative">P&L: -22250.0</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="threshold-section">
+                <div class="threshold-title">
+                    1500 Threshold
+                </div>
+
+                <div class="date-range-heading">
+                    Dec 01 - Dec 18
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>C2</th>
+                                <th>D1</th>
+                                <th>D2</th>
+                                <th>D3</th>
+                                <th>D4</th>
+                                <th>D5</th>
+                                <th>F1</th>
+                                <th>F2</th>
+                                <th>G2</th>
+                                <th>H</th>
+                                <th>I</th>
+                                <th>K1</th>
+                                <th>K2</th>
+                                <th>P1</th>
+                                <th>P2</th>
+                                <th>P3</th>
+                                <th>P4</th>
+                                <th>PX</th>
+                                <th>Q</th>
+                                <th>R</th>
+                                <th>S</th>
+                                <th>T</th>
+                                <th>TL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mon, Dec 01</td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-5250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 02</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 03</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 04</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Fri, Dec 05</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mon, Dec 08</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-12000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-10000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-12000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-16250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-13000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-8000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 09</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 10</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 11</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Fri, Dec 12</td>
+                                <td><span class="success">✅</span><span class="success-value">(-14500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-5500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-8750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-10000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-11500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-19000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-14000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-8750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mon, Dec 15</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 16</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-9750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4000.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 17</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 18</td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-6500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-7500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-6750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="total-cell"></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3000</div><div class="total-label total-drawdown">Drawdown: -25500.0</div><div class="total-label total-pnl-negative">P&L: -22500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -3500.0</div><div class="total-label total-pnl-negative">P&L: -3500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -7000.0</div><div class="total-label total-pnl-negative">P&L: -7000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1500</div><div class="total-label total-drawdown">Drawdown: -2000.0</div><div class="total-label total-pnl-negative">P&L: -500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -6250.0</div><div class="total-label total-pnl-negative">P&L: -6250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1500</div><div class="total-label total-drawdown">Drawdown: -8500.0</div><div class="total-label total-pnl-negative">P&L: -7000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 12000</div><div class="total-label total-drawdown">Drawdown: -39250.0</div><div class="total-label total-pnl-negative">P&L: -27250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 1500</div><div class="total-label total-drawdown">Drawdown: -7500.0</div><div class="total-label total-pnl-negative">P&L: -6000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3000</div><div class="total-label total-drawdown">Drawdown: -17250.0</div><div class="total-label total-pnl-negative">P&L: -14250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4500</div><div class="total-label total-drawdown">Drawdown: -22750.0</div><div class="total-label total-pnl-negative">P&L: -18250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4500</div><div class="total-label total-drawdown">Drawdown: -34500.0</div><div class="total-label total-pnl-negative">P&L: -30000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -4750.0</div><div class="total-label total-pnl-negative">P&L: -4750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -4250.0</div><div class="total-label total-pnl-negative">P&L: -4250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -18750.0</div><div class="total-label total-pnl-negative">P&L: -12750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 7500</div><div class="total-label total-drawdown">Drawdown: -34750.0</div><div class="total-label total-pnl-negative">P&L: -27250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4500</div><div class="total-label total-drawdown">Drawdown: -42750.0</div><div class="total-label total-pnl-negative">P&L: -38250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3000</div><div class="total-label total-drawdown">Drawdown: -31000.0</div><div class="total-label total-pnl-negative">P&L: -28000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -35250.0</div><div class="total-label total-pnl-negative">P&L: -29250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4500</div><div class="total-label total-drawdown">Drawdown: -48250.0</div><div class="total-label total-pnl-negative">P&L: -43750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4500</div><div class="total-label total-drawdown">Drawdown: -35750.0</div><div class="total-label total-pnl-negative">P&L: -31250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3000</div><div class="total-label total-drawdown">Drawdown: -28000.0</div><div class="total-label total-pnl-negative">P&L: -25000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 12000</div><div class="total-label total-drawdown">Drawdown: -37000.0</div><div class="total-label total-pnl-negative">P&L: -25000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 3000</div><div class="total-label total-drawdown">Drawdown: -26250.0</div><div class="total-label total-pnl-negative">P&L: -23250.0</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="threshold-section">
+                <div class="threshold-title">
+                    2000 Threshold
+                </div>
+
+                <div class="date-range-heading">
+                    Dec 01 - Dec 18
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>C2</th>
+                                <th>D1</th>
+                                <th>D2</th>
+                                <th>D3</th>
+                                <th>D4</th>
+                                <th>D5</th>
+                                <th>F1</th>
+                                <th>F2</th>
+                                <th>G2</th>
+                                <th>H</th>
+                                <th>I</th>
+                                <th>K1</th>
+                                <th>K2</th>
+                                <th>P1</th>
+                                <th>P2</th>
+                                <th>P3</th>
+                                <th>P4</th>
+                                <th>PX</th>
+                                <th>Q</th>
+                                <th>R</th>
+                                <th>S</th>
+                                <th>T</th>
+                                <th>TL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mon, Dec 01</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 02</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 03</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 04</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                            </tr>
+                            <tr>
+                                <td>Fri, Dec 05</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mon, Dec 08</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-12000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-10000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-12000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-16250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-13000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-8000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 09</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 10</td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 11</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Fri, Dec 12</td>
+                                <td><span class="success">✅</span><span class="success-value">(-14500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="success">✅</span><span class="success-value">(-5500.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-8750.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-10000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-11500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-3500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-19000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-4250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-14000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-8750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Mon, Dec 15</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td class="no-data"></td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Tue, Dec 16</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-9750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4000.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Wed, Dec 17</td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4000.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1000.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td>Thu, Dec 18</td>
+                                <td class="no-data"></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-1500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-6500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3750.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-3000.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-4500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-5250.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-2750.0)</span></td>
+                                <td><span class="success">✅</span><span class="success-value">(-7500.0)</span></td>
+                                <td><span class="failure">❌</span><span class="failure-value">(-6750.0)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="total-cell"></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -25500.0</div><div class="total-label total-pnl-negative">P&L: -23500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -3500.0</div><div class="total-label total-pnl-negative">P&L: -3500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -7000.0</div><div class="total-label total-pnl-negative">P&L: -7000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -2000.0</div><div class="total-label total-pnl-positive">P&L: 0.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -6250.0</div><div class="total-label total-pnl-negative">P&L: -6250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -8500.0</div><div class="total-label total-pnl-negative">P&L: -6500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -39250.0</div><div class="total-label total-pnl-negative">P&L: -33250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -7500.0</div><div class="total-label total-pnl-negative">P&L: -7500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -17250.0</div><div class="total-label total-pnl-negative">P&L: -15250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -22750.0</div><div class="total-label total-pnl-negative">P&L: -20750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -34500.0</div><div class="total-label total-pnl-negative">P&L: -32500.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -4750.0</div><div class="total-label total-pnl-negative">P&L: -4750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 0</div><div class="total-label total-drawdown">Drawdown: -4250.0</div><div class="total-label total-pnl-negative">P&L: -4250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -18750.0</div><div class="total-label total-pnl-negative">P&L: -16750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 10000</div><div class="total-label total-drawdown">Drawdown: -34750.0</div><div class="total-label total-pnl-negative">P&L: -24750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -42750.0</div><div class="total-label total-pnl-negative">P&L: -36750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4000</div><div class="total-label total-drawdown">Drawdown: -31000.0</div><div class="total-label total-pnl-negative">P&L: -27000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -35250.0</div><div class="total-label total-pnl-negative">P&L: -29250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -48250.0</div><div class="total-label total-pnl-negative">P&L: -42250.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 6000</div><div class="total-label total-drawdown">Drawdown: -35750.0</div><div class="total-label total-pnl-negative">P&L: -29750.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 2000</div><div class="total-label total-drawdown">Drawdown: -28000.0</div><div class="total-label total-pnl-negative">P&L: -26000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 16000</div><div class="total-label total-drawdown">Drawdown: -37000.0</div><div class="total-label total-pnl-negative">P&L: -21000.0</div></td>
+                                <td class="total-cell"><div class="total-label total-wins">Wins: 4000</div><div class="total-label total-drawdown">Drawdown: -26250.0</div><div class="total-label total-pnl-negative">P&L: -22250.0</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <p>MT5 Analytics Dashboard - Threshold Performance Report</p>
+        </div>
+    </div>
+</body>
+</html>
